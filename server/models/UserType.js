@@ -2,24 +2,33 @@ import mongoose from "mongoose";
 
 const userTypeSchema = new mongoose.Schema(
   {
-    username: {
+    firstName: {
       type: String,
       default: "",
       lowercase: true,
       trim: true,
     },
-    email: {
+    lastName: {
       type: String,
-      unique: true,
-      required: true,
+      default: "",
       lowercase: true,
       trim: true,
     },
     ip: {
       type: String,
       default: "",
+      trim: true,
     },
-    notes: {
+    shippingAddress: Object,
+    billingAddress: Object,
+    email: {
+      type: String,
+      unique: false,
+      required: true,
+      lowercase: true,
+      trim: true,
+    },
+    note: {
       type: String,
       default: "",
     },
@@ -33,6 +42,11 @@ const userTypeSchema = new mongoose.Schema(
         default: "",
       },
     },
+    shop: {
+      type: String,
+      default: "",
+    },
+    webhooks: [{ webhookType: String, count: Number, webhookIds: [] }],
   },
   {
     timestamps: true,

@@ -1,4 +1,5 @@
 import { Route, Routes } from "react-router-dom";
+import { ToastContainer } from "react-toastify";
 import Navbar from "./components/Navbar";
 import PageLayout from "./Layout/PageLayout";
 import AddFraud from "./pages/AddFraud";
@@ -12,6 +13,7 @@ const App = () => {
   return (
     <>
       <Navbar />
+      <ToastContainer />
 
       <Routes>
         <Route path="/" element={<PageLayout />}>

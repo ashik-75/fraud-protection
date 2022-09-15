@@ -1,58 +1,91 @@
-import { useMutation, useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 
-const fetchFraudList = (search, page, sortBy) => {
+const fetchUsers = (search, page, sortBy, type) => {
   return axios.get(
-    "http://localhost:8000/api/userType/fraudlist" +
-      `?search=${search}&page=${page}&sortBy=${sortBy}`
+    "http://localhost:8000/api/dashboard/users" +
+      `?search=${search}&page=${page}&sortBy=${sortBy}&shop=crazyshop.com&type=${type}`
   );
 };
 
-export const useGetFraudList = (search, page, sortBy) => {
-  const { data, isLoading, isError, isSuccess, error, isPreviousData } =
-    useQuery(
-      ["FraudList", search, page, sortBy],
-      () => fetchFraudList(search, page, sortBy),
-      {
-        keepPreviousData: true,
-      }
-    );
-
-  return { data, isLoading, isError, isSuccess, error, isPreviousData };
-};
-
-const fetchWhiteListUser = (search, page, sortBy) => {
-  return axios.get(
-    "http://localhost:8000/api/userType/whitelist" +
-      `?search=${search}&page=${page}&sortBy=${sortBy}`
+export const useGetDashboardUsers = (search, page, sortBy, type) => {
+  const {
+    data,
+    isLoading,
+    isError,
+    isSuccess,
+    error,
+    isFetching,
+    isPreviousData,
+  } = useQuery(
+    ["FraudList", search, page, sortBy, type],
+    () => fetchUsers(search, page, sortBy, type),
+    {
+      keepPreviousData: true,
+    }
   );
+
+  return {
+    data,
+    isLoading,
+    isError,
+    isSuccess,
+    error,
+    isFetching,
+    isPreviousData,
+  };
 };
 
-export const useGetWhiteList = (search, page, sortBy) => {
-  const { data, isLoading, isError, isSuccess, error, isPreviousData } =
-    useQuery(
-      ["WhiteList", search, page, sortBy],
-      () => fetchWhiteListUser(search, page, sortBy),
-      {
-        keepPreviousData: true,
-      }
-    );
-
-  return { data, isLoading, isError, isSuccess, error, isPreviousData };
-};
-
-const addFraud = (info) => {
-  return axios.post("http://localhost:8000/api/userType", info, {
+const addDashboardUser = (info) => {
+  return axios.post("http://localhost:8000/api/dashboard/users", info, {
     Headers: {
       "Content-Type": "application/json",
     },
   });
 };
 
-export const useAddFraud = () => {
+export const useAddDashboardUser = () => {
   const { mutate, isLoading, isError, isSuccess, error } = useMutation((info) =>
-    addFraud(info)
+    addDashboardUser(info)
   );
 
   return { mutate, isLoading, isError, isSuccess, error };
+};
+
+const addSettingsInfo = (info) => {
+  return axios.post("http://localhost:8000/api/settings", info, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+};
+
+export const useAddSettingsInfo = () => {
+  const queryClient = useQueryClient();
+  const { mutate, isLoading, isError, error, isSuccess } = useMutation(
+    (info) => addSettingsInfo(info),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("settingsInfo");
+      },
+    }
+  );
+
+  return { mutate, isLoading, isError, error, isSuccess };
+};
+
+const getSettingsInfo = () => {
+  return axios.get("http://localhost:8000/api/settings?shop=crazyshop.com");
+};
+
+export const useGetSettingsInfo = () => {
+  const {
+    data,
+    isLoading: loading,
+    isError: isSettingsError,
+    isSuccess: isSettingsSuccess,
+    error: settingsError,
+  } = useQuery(["settingsInfo"], getSettingsInfo);
+
+  return { data, loading, isSettingsError, isSettingsSuccess, settingsError };
 };

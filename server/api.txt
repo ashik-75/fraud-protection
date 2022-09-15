@@ -1,0 +1,37 @@
+refund (you hit)
+    {{my_url}}/api/refund => url (GET method)
+    input format => 
+       { 
+        customer: {name: "alex",email: "alex@gmail.com"},
+        refund: {note: "cause of refund",id: "5634_refun_id"}
+       }
+
+chargeback (you hit)
+    {{my_url}}/api/chargeback => url (POST method)
+    input format => 
+       { 
+        customer: {name: "alex",email: "alex@gmail.com"},
+        chargeback: {note: "cause of chargeback",id: "5634_chargeback_id"}
+       }
+
+orders (i hit)
+    {{navidium_url}}?shop=crazyshop.com(GET method)
+    output format => 
+    {
+        total_orders: 180
+    }
+
+credentials (i hit)
+    {{navidium_url}}?shop=crazyshop.com(GET method)
+    output format =>
+    {
+        success: true/false,
+    }
+
+
+
+
+
+
+
+

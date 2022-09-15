@@ -1,58 +1,44 @@
 import format from "date-fns/format";
-import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { PulseLoader } from "react-spinners";
 import Loading from "../components/Loading";
-import { useGetFraudList } from "../services";
+import { useGetDashboardUsers } from "../services";
 
 const FraudList = () => {
   const [searchParams, setSearchParams] = useSearchParams();
-  const [page, setPage] = useState(parseInt(searchParams.get("page")) || 1);
 
+  const userType = "fraud";
   const search = searchParams.get("search") || "";
   const sortBy = searchParams.get("sortBy") || "";
+  const page = parseInt(searchParams.get("page")) || 1;
 
-  const { data, isLoading, isError, isSuccess, error, isPreviousData } =
-    useGetFraudList(search, page, sortBy);
+  const {
+    data,
+    isLoading,
+    isError,
+    isSuccess,
+    error,
+    isFetching,
+    isPreviousData,
+  } = useGetDashboardUsers(search, page, sortBy, userType);
 
   const handleSearch = (e) => {
     if (e.key === "Enter") {
-      setSearchParams({
-        search: e.target.value,
-        page: 1,
-      });
+      searchParams.set("search", e.target.value);
+      searchParams.set("page", 1);
+      setSearchParams(searchParams);
     }
   };
 
   const handleSortBy = (dt) => {
-    setSearchParams({
-      sortBy: dt,
-      page: 1,
-    });
+    searchParams.set("sortBy", dt);
+    setSearchParams(searchParams);
   };
 
-  useEffect(() => {
-    if (page && search && sortBy) {
-      setSearchParams({
-        page,
-        sortBy,
-        search,
-      });
-    } else if (page && search) {
-      setSearchParams({
-        page,
-        search,
-      });
-    } else if (page && sortBy) {
-      setSearchParams({
-        page,
-        sortBy,
-      });
-    } else {
-      setSearchParams({
-        page,
-      });
-    }
-  }, [page]);
+  const handlePage = (pageNumber) => {
+    searchParams.set("page", pageNumber);
+    setSearchParams(searchParams);
+  };
 
   return (
     <div className="cols-content">
@@ -103,6 +89,7 @@ const FraudList = () => {
                   onChange={(e) => handleSortBy(e.target.value)}
                   className="form-select"
                 >
+                  <option value={""}>Select --</option>
                   <option value={"updatedAt"}>Date</option>
                   <option value={"username"}>Username</option>
                 </select>
@@ -114,7 +101,7 @@ const FraudList = () => {
         {isLoading ? (
           <Loading />
         ) : isError ? (
-          <div>Something wrong happen</div>
+          <div>{error?.response?.message || " Something Went Wrong"}</div>
         ) : (
           <>
             <div className="all-selected-filster-show ">
@@ -129,7 +116,7 @@ const FraudList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {data?.data?.fraudList?.length === 0 ? (
+                    {data?.data.length === 0 ? (
                       <div
                         style={{
                           padding: "10px",
@@ -140,7 +127,7 @@ const FraudList = () => {
                         Nothing Found
                       </div>
                     ) : (
-                      data?.data?.fraudList?.map((user) => (
+                      data?.data?.users?.map((user) => (
                         <tr key={user._id}>
                           <th>{user.username}</th>
                           <th>{user.email}</th>
@@ -174,7 +161,10 @@ const FraudList = () => {
                     <div className="d-flex align-items-center">
                       <p>
                         {data?.data?.totalDoc} total users , total page{" "}
-                        {data?.data?.totalPage}
+                        {data?.data?.totalPage}{" "}
+                        <span>
+                          {isFetching && <PulseLoader color="#b4b0b0" />}
+                        </span>
                       </p>
                     </div>
                   </div>
@@ -187,7 +177,7 @@ const FraudList = () => {
                           page <= 1 ? "page-item disabled" : "page-item"
                         }
                         onClick={() => {
-                          setPage((prev) => Math.max(prev - 1, 0));
+                          handlePage(Math.max(page - 1, 0));
                         }}
                       >
                         <a className="page-link" href="#" aria-label="Previous">
@@ -203,7 +193,7 @@ const FraudList = () => {
                               page === x + 1 ? "page-item active" : "page-item"
                             }
                             key={x}
-                            onClick={() => setPage(x + 1)}
+                            onClick={() => handlePage(x + 1)}
                           >
                             <a className="page-link" href="#">
                               {x + 1}
@@ -226,8 +216,8 @@ const FraudList = () => {
                             : "page-item"
                         }
                         onClick={() => {
-                          if (data?.data?.totalPage >= page) {
-                            setPage((prev) => prev + 1);
+                          if (data?.data?.totalPage > page) {
+                            handlePage(page + 1);
                           }
                         }}
                       >

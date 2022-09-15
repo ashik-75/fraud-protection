@@ -1,14 +1,12 @@
 import { Router } from "express";
 import {
-  addUserType,
-  getFraudList,
-  getWhiteList,
+  addDashboardUser,
+  getDashboardUsers,
+  removeAllType,
 } from "../controllers/userTypeController.js";
 
 const userTypeRouter = Router();
 
-userTypeRouter.route("/").post(addUserType);
-userTypeRouter.route("/whitelist").get(getWhiteList);
-userTypeRouter.route("/fraudlist").get(getFraudList);
-
+userTypeRouter.route("/users").get(getDashboardUsers).post(addDashboardUser);
+userTypeRouter.route("/deleteAll").delete(removeAllType);
 export default userTypeRouter;

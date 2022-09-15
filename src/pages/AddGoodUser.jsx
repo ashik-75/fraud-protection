@@ -1,24 +1,33 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ButtonLoader from "../components/ButtonLoader";
-import { useAddFraud } from "../services";
+import { useAddDashboardUser } from "../services";
 
 const AddFraud = () => {
-  const { mutate, isLoading, isError, isSuccess, error } = useAddFraud();
+  const { mutate, isLoading, isError, isSuccess, error } =
+    useAddDashboardUser();
+
+  console.log({
+    mutate,
+    isLoading,
+    isError,
+    isSuccess,
+    error,
+  });
 
   const navigate = useNavigate();
   const [fraudInfo, setFraudInfo] = useState({
+    shop: "crazyshop.com",
     username: "",
     email: "",
     userType: {
       level: "",
       type: "good",
     },
-    ip: "",
-    notes: "",
+    note: "",
   });
 
-  const { username, email, ip, notes } = fraudInfo;
+  const { username, email, note } = fraudInfo;
 
   const onChange = (e) => {
     setFraudInfo({ ...fraudInfo, [e.target.name]: e.target.value });
@@ -27,7 +36,7 @@ const AddFraud = () => {
   const onSubmit = (e) => {
     e.preventDefault();
 
-    if (username && email && ip) {
+    if (username && email) {
       mutate(fraudInfo);
     }
   };
@@ -76,7 +85,8 @@ const AddFraud = () => {
                   marginTop: "10px",
                 }}
               >
-                something Went Wrong , Please try again later
+                {error?.response?.data ||
+                  "something Went Wrong , Please try again later"}
               </div>
             )}
             <div className="fraud-form-wrap">
@@ -111,24 +121,13 @@ const AddFraud = () => {
                 </div>
 
                 <div className="from-group-f">
-                  <label>IP Address</label>
-                  <input
-                    name="ip"
-                    onChange={onChange}
-                    value={ip}
-                    type="text"
-                    className="form-control"
-                    placeholder="e.g. 111.111.111.111"
-                  />
-                </div>
-                <div className="from-group-f">
                   <label>Additional Notes</label>
                   <textarea
-                    value={notes}
+                    value={note}
                     className="form-control"
                     rows="5"
                     placeholder="e.g. type here..."
-                    name="notes"
+                    name="note"
                     onChange={onChange}
                   ></textarea>
                 </div>

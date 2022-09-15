@@ -1,30 +1,34 @@
 import format from "date-fns/format";
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import Loading from "../components/Loading";
-import { useGetWhiteList } from "../services";
+import { useGetDashboardUsers } from "../services";
 
 const WhiteList = () => {
-  const [page, setPage] = useState(1);
-  const [sortBy, setSortBy] = useState("");
+  const userType = "good";
+  const [searchParams, setSearchParams] = useSearchParams();
+  const search = searchParams.get("search") || "";
+  const sortBy = searchParams.get("sortBy") || "";
+  const page = parseInt(searchParams.get("page")) || 1;
 
-  const [searchInput, setSeacrchInput] = useState("");
-  const [search, setSearch] = useState("");
   const { data, isLoading, isError, isSuccess, error, isPreviousData } =
-    useGetWhiteList(search, page, sortBy);
-
-  console.log({
-    data,
-    isLoading,
-    isError,
-    isSuccess,
-    error,
-  });
+    useGetDashboardUsers(search, page, sortBy, userType);
 
   const handleSearch = (e) => {
     if (e.key === "Enter") {
-      setSearch(searchInput);
+      searchParams.set("search", e.target.value);
+      searchParams.set("page", 1);
+      setSearchParams(searchParams);
     }
+  };
+
+  const handleSortBy = (info) => {
+    searchParams.set("sortBy", info);
+    setSearchParams(searchParams);
+  };
+
+  const handlePage = (pageNum) => {
+    searchParams.set("page", pageNum);
+    setSearchParams(searchParams);
   };
 
   return (
@@ -75,9 +79,10 @@ const WhiteList = () => {
               <div className="sort-by-fraud d-flex align-items-center justify-content-end">
                 <label>Sort By</label>
                 <select
-                  onChange={(e) => setSortBy(e.target.value)}
+                  onChange={(e) => handleSortBy(e.target.value)}
                   className="form-select"
                 >
+                  <option value={""}>Select --</option>
                   <option value={"updatedAt"}>Date</option>
                   <option value={"username"}>UserName</option>
                 </select>
@@ -90,7 +95,7 @@ const WhiteList = () => {
           <Loading />
         ) : isError ? (
           <div style={{ padding: "50px", color: "crimson" }}>
-            Something Went Wrong
+            {error?.response?.message || " Something Went Wrong"}
           </div>
         ) : (
           <>
@@ -106,7 +111,7 @@ const WhiteList = () => {
                     </tr>
                   </thead>
                   <tbody>
-                    {data?.data?.whiteList?.length === 0 ? (
+                    {data?.data?.users?.length === 0 ? (
                       <div
                         style={{
                           padding: "10px",
@@ -117,7 +122,7 @@ const WhiteList = () => {
                         Nothing Found
                       </div>
                     ) : (
-                      data?.data?.whiteList?.map((user) => (
+                      data?.data?.users?.map((user) => (
                         <tr key={user._id}>
                           <th>{user.username}</th>
                           <th>{user.email}</th>
@@ -163,7 +168,7 @@ const WhiteList = () => {
                         className={
                           page <= 1 ? "page-item disabled" : "page-item"
                         }
-                        onClick={() => setPage((prev) => Math.max(prev - 1, 0))}
+                        onClick={() => handlePage(Math.max(page - 1, 0))}
                       >
                         <a className="page-link" href="#" aria-label="Previous">
                           <span aria-hidden="true">«</span>
@@ -178,7 +183,7 @@ const WhiteList = () => {
                               page === x + 1 ? "page-item active" : "page-item"
                             }
                             key={x}
-                            onClick={() => setPage(x + 1)}
+                            onClick={() => handlePage(x + 1)}
                           >
                             <a className="page-link" href="#">
                               {x + 1}
@@ -201,8 +206,8 @@ const WhiteList = () => {
                             : "page-item"
                         }
                         onClick={() => {
-                          if (data?.data?.totalPage >= page) {
-                            setPage((prev) => prev + 1);
+                          if (data?.data?.totalPage > page) {
+                            handlePage(page + 1);
                           }
                         }}
                       >
